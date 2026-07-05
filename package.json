@@ -1,0 +1,11 @@
+{
+  "name": "mateusz-portfolio-site",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node dev-server.js --host 127.0.0.1 --port 5173 --strict-port",
+    "build": "node build.js",
+    "preview": "node dev-server.js --root dist --host 127.0.0.1 --port 5174 --strict-port"
+  }
+}
