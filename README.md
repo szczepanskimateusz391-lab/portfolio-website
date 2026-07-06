@@ -41,7 +41,7 @@ npm run dev
 Domyslny adres lokalny:
 
 ```text
-http://127.0.0.1:5173/
+https://msanalytics.pl
 ```
 
 Dostepne skrypty:
