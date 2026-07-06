@@ -1,8 +1,27 @@
+const LINKEDIN_URL = "https://www.linkedin.com/in/mateusz-szczepanski-data/";
+
 const lightbox = document.querySelector("#dashboard-lightbox");
 const lightboxImage = lightbox?.querySelector("img");
 const lightboxCaption = lightbox?.querySelector("figcaption");
 const closeButton = lightbox?.querySelector(".lightbox-close");
 let lastFocusedElement = null;
+
+document.querySelectorAll("[data-linkedin-url]").forEach((link) => {
+  link.href = LINKEDIN_URL;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+});
+
+const structuredData = document.querySelector("#structured-data");
+if (structuredData) {
+  try {
+    const schema = JSON.parse(structuredData.textContent);
+    schema.sameAs = [LINKEDIN_URL];
+    structuredData.textContent = JSON.stringify(schema);
+  } catch (error) {
+    console.warn("Could not update structured data LinkedIn URL.", error);
+  }
+}
 
 function openLightbox(trigger) {
   if (!lightbox || !lightboxImage || !lightboxCaption) return;

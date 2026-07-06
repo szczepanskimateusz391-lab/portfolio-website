@@ -25,7 +25,7 @@ Statyczna strona portfolio dla freelancera Data Analytics & Business Automation,
 
 1. W `index.html` podmien:
    - `twoj-email@example.com` na wlasciwy adres e-mail,
-   - `https://www.linkedin.com/` na profil LinkedIn,
+   - `LINKEDIN_URL` w `script.js` na profil LinkedIn,
    - `https://twojadomena.pl/` na docelowa domene.
 2. Screenshoty i zdjecie profilowe sa w folderze `assets`.
 3. Strone mozna opublikowac na GitHub Pages, Netlify, Vercel albo klasycznym hostingu statycznym.
