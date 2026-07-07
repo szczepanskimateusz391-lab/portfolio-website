@@ -3,7 +3,16 @@ import { resolve } from "node:path";
 
 const root = resolve(".");
 const dist = resolve("dist");
-const entries = ["assets", "index.html", "script.js", "styles.css", "README.md", "package.json"];
+const entries = [
+  "assets",
+  "index.html",
+  "script.js",
+  "styles.css",
+  "README.md",
+  "package.json",
+  "robots.txt",
+  "sitemap.xml"
+];
 
 if (existsSync(dist)) {
   rmSync(dist, { force: true, recursive: true });
