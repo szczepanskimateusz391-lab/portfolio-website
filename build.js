@@ -10,6 +10,12 @@ const entries = [
   "styles.css",
   "README.md",
   "package.json",
+  "favicon.ico",
+  "favicon-16x16.png",
+  "favicon-32x32.png",
+  "apple-touch-icon.png",
+  "android-chrome-192x192.png",
+  "android-chrome-512x512.png",
   "robots.txt",
   "sitemap.xml"
 ];

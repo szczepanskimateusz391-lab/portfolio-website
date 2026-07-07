@@ -70,8 +70,17 @@ a {
 }
 
 .brand {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
   font-weight: 900;
   letter-spacing: 0;
+}
+
+.brand img {
+  display: block;
+  width: auto;
+  height: 42px;
 }
 
 .nav nav {
@@ -851,6 +860,10 @@ footer p {
 
   .nav nav {
     display: none;
+  }
+
+  .brand img {
+    height: 36px;
   }
 
   .hero,
