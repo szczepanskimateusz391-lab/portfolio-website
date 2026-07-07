@@ -16,6 +16,7 @@ const entries = [
   "apple-touch-icon.png",
   "android-chrome-192x192.png",
   "android-chrome-512x512.png",
+  "og-image.png",
   "robots.txt",
   "sitemap.xml"
 ];
