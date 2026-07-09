@@ -5,6 +5,8 @@ const root = resolve(".");
 const dist = resolve("dist");
 const entries = [
   "assets",
+  "apps-script",
+  "projects",
   "index.html",
   "script.js",
   "styles.css",
