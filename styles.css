@@ -269,12 +269,13 @@ h3 {
 .project-preview img {
   display: block;
   width: 100%;
-  height: clamp(280px, 34vw, 420px);
+  height: auto;
+  aspect-ratio: 1440 / 802;
   margin-top: 14px;
-  object-fit: cover;
-  object-position: left top;
+  object-fit: contain;
   border: 1px solid rgba(255, 255, 255, .12);
   border-radius: 18px;
+  background: #edf3ff;
   box-shadow: 0 22px 46px rgba(0, 0, 0, .28);
 }
 
@@ -416,7 +417,7 @@ small {
 
 .service-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 18px;
 }
 
@@ -458,7 +459,7 @@ small {
 
 .projects-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 24px;
 }
 
@@ -1310,10 +1311,6 @@ footer p {
 
   .hero-card {
     padding: 18px;
-  }
-
-  .project-preview img {
-    height: 250px;
   }
 
   .chart-bars {
