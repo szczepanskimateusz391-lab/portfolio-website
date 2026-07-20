@@ -142,6 +142,12 @@ h1 {
   letter-spacing: 0;
 }
 
+.hero h1 {
+  max-width: 680px;
+  overflow-wrap: normal;
+  text-wrap: balance;
+}
+
 h2 {
   margin: 18px 0;
   font-size: clamp(32px, 4.8vw, 56px);
@@ -1251,6 +1257,10 @@ footer p {
 
   h1 {
     font-size: clamp(38px, 13vw, 54px);
+  }
+
+  .hero h1 {
+    font-size: clamp(38px, 11vw, 46px);
   }
 
   .buttons,
