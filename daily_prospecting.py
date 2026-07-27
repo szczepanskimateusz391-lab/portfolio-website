@@ -16,6 +16,7 @@ import os
 import re
 import sys
 import textwrap
+import traceback
 import unicodedata
 from datetime import date, datetime
 from pathlib import Path
@@ -31,6 +32,13 @@ try:
     load_dotenv()
 except ImportError:
     pass
+
+try:
+    from google.auth.exceptions import RefreshError
+except ImportError:
+    # Keep offline dry-runs available before Google dependencies are installed.
+    class RefreshError(Exception):
+        """Fallback used only when google-auth is not installed."""
 
 
 MASTER_SHEET = "Master Prospects"
@@ -79,6 +87,20 @@ TRACKER_HEADERS = [
 
 NEXT_ACTION = "Find decision maker on LinkedIn manually"
 STATUS = "Do weryfikacji"
+REDACTED_VALUE = "[REDACTED]"
+SERVICE_ACCOUNT_FIELDS = {
+    "auth_provider_x509_cert_url",
+    "auth_uri",
+    "client_email",
+    "client_id",
+    "client_x509_cert_url",
+    "private_key",
+    "private_key_id",
+    "project_id",
+    "token_uri",
+    "type",
+    "universe_domain",
+}
 
 MALE_VOCATIVE = {
     "Adam": "Adamie",
@@ -132,6 +154,77 @@ def shorten(value: Any, width: int) -> str:
 def parse_bool(value: Any) -> bool:
     """Interpret common true/false environment variable values."""
     return normalized(value) in {"1", "true", "yes", "y", "on"}
+
+
+def service_account_values_to_redact() -> set[str]:
+    """Return credential values that must never appear in diagnostics."""
+    raw_json = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON", "")
+    values = {raw_json} if raw_json else set()
+
+    try:
+        account_info = json.loads(raw_json) if raw_json else {}
+    except (json.JSONDecodeError, TypeError):
+        account_info = {}
+
+    if isinstance(account_info, dict):
+        for field in SERVICE_ACCOUNT_FIELDS:
+            value = account_info.get(field)
+            if isinstance(value, str) and len(value) >= 4:
+                values.add(value)
+                # Tracebacks may contain either decoded newlines or JSON escapes.
+                values.add(json.dumps(value, ensure_ascii=False)[1:-1])
+
+    return {value for value in values if value}
+
+
+def redact_sensitive_diagnostics(value: Any) -> str:
+    """Remove service-account content while preserving useful error details."""
+    safe_text = str(value)
+
+    # Redact exact environment and parsed credential values, longest first.
+    for sensitive_value in sorted(
+        service_account_values_to_redact(), key=len, reverse=True
+    ):
+        safe_text = safe_text.replace(sensitive_value, REDACTED_VALUE)
+
+    # Defense in depth for messages that contain only part of a JSON credential.
+    credential_fields = "|".join(sorted(SERVICE_ACCOUNT_FIELDS))
+    safe_text = re.sub(
+        rf'(?is)("(?:{credential_fields})"\s*:\s*")'
+        rf'(?:\\.|[^"\\])*(")',
+        rf"\1{REDACTED_VALUE}\2",
+        safe_text,
+    )
+    safe_text = re.sub(
+        r"(?is)-----BEGIN(?: [A-Z]+)? PRIVATE KEY-----.*?"
+        r"-----END(?: [A-Z]+)? PRIVATE KEY-----",
+        REDACTED_VALUE,
+        safe_text,
+    )
+    safe_text = re.sub(
+        r"(?im)(GOOGLE_SERVICE_ACCOUNT_JSON\s*[:=]\s*).+$",
+        rf"\1{REDACTED_VALUE}",
+        safe_text,
+    )
+    return safe_text
+
+
+def print_exception_diagnostics(error: BaseException) -> None:
+    """Print a useful traceback without exposing service-account credentials."""
+    exception_name = type(error).__name__
+    message = redact_sensitive_diagnostics(str(error)) or "<empty message>"
+    full_traceback = "".join(
+        traceback.format_exception(type(error), error, error.__traceback__)
+    )
+    safe_traceback = redact_sensitive_diagnostics(full_traceback).rstrip()
+
+    print(f"ERROR class: {exception_name}", file=sys.stderr)
+    print(f"ERROR message: {message}", file=sys.stderr)
+    print(
+        "ERROR traceback (service-account values redacted):",
+        file=sys.stderr,
+    )
+    print(safe_traceback, file=sys.stderr)
 
 
 def normalize_company_name(company: Any) -> str:
@@ -869,25 +962,25 @@ def print_summary(summary: dict[str, Any]) -> None:
 
 
 def main() -> int:
-    """CLI entry point with concise, secret-safe error handling."""
+    """CLI entry point with detailed, secret-safe error handling."""
     try:
         summary = run(parse_arguments())
         print_summary(summary)
         return 0
+    except RefreshError as error:
+        print("ERROR: Google authentication refresh failed.", file=sys.stderr)
+        print_exception_diagnostics(error)
+        return 1
     except (
         ConfigurationError,
         FileNotFoundError,
         SheetStructureError,
         ValueError,
     ) as error:
-        print(f"ERROR: {error}", file=sys.stderr)
+        print_exception_diagnostics(error)
         return 1
     except Exception as error:
-        # Google API errors are intentionally not expanded with request data.
-        print(
-            f"ERROR: daily prospecting failed ({type(error).__name__}).",
-            file=sys.stderr,
-        )
+        print_exception_diagnostics(error)
         return 1
 
 
