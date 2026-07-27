@@ -1,0 +1,47 @@
+name: Daily Prospecting
+
+on:
+  schedule:
+    # 06:15 UTC = 07:15 CET / 08:15 CEST in Poland.
+    - cron: "15 6 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Read and prepare prospects without changing Google Sheets"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: daily-prospecting
+  cancel-in-progress: false
+
+jobs:
+  update-google-sheets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install --requirement requirements.txt
+
+      - name: Prepare daily prospects
+        env:
+          GOOGLE_SHEETS_ID: ${{ secrets.GOOGLE_SHEETS_ID }}
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          DAILY_PROSPECT_LIMIT: "10"
+          PROSPECTING_TIMEZONE: Europe/Warsaw
+          DRY_RUN: ${{ inputs.dry_run || 'false' }}
+        run: python daily_prospecting.py
